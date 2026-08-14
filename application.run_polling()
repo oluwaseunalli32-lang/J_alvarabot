@@ -1,0 +1,11 @@
+import asyncio
+...
+def main():
+    ...
+    # Force a new event loop (fixes Python 3.14 compatibility)
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+    
+    application.run_polling()
