@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from telegram import Update
 from telegram.ext import (
@@ -11,11 +10,27 @@ from telegram.ext import (
 )
 from config import BOT_TOKEN
 from handlers import (
-    start, help_command, about, privacy, function_placeholder,
-    daily, quiz, grammar, example, define
+    start,
+    help_command,
+    about,
+    privacy,
+    function_placeholder,
+    daily,
+    quiz,
+    grammar,
+    quiz_callback,
+    grammar_callback,
+    main_utility_callback,
+    example_start,
+    get_example,
+    example_cancel,
+    EXAMPLE_WAITING,
+    define_start,
+    get_definition,
+    define_cancel,
+    DEFINE_WAITING,
 )
 
-# Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -23,11 +38,9 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    """Start the bot."""
-    # Create Application
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # Register command handlers
+    # Command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("about", about))
@@ -37,38 +50,37 @@ def main() -> None:
     application.add_handler(CommandHandler("quiz", quiz))
     application.add_handler(CommandHandler("grammar", grammar))
 
-    # Conversation handlers for example and define
+    # Conversation handler for /example
     application.add_handler(
         ConversationHandler(
-            entry_points=[CommandHandler("example", example.start)],
+            entry_points=[CommandHandler("example", example_start)],
             states={
-                example.WAITING_FOR_WORD: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, example.get_example)
+                EXAMPLE_WAITING: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, get_example)
                 ],
             },
-            fallbacks=[CommandHandler("cancel", example.cancel)]
-        )
-    )
-    application.add_handler(
-        ConversationHandler(
-            entry_points=[CommandHandler("define", define.start)],
-            states={
-                define.WAITING_FOR_WORD: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, define.get_definition)
-                ],
-            },
-            fallbacks=[CommandHandler("cancel", define.cancel)]
+            fallbacks=[CommandHandler("cancel", example_cancel)],
         )
     )
 
-    # Callback query handler for quiz and grammar buttons
-    application.add_handler(CallbackQueryHandler(quiz.handle_callback, pattern="^quiz_"))
-    application.add_handler(CallbackQueryHandler(grammar.handle_callback, pattern="^grammar_"))
+    # Conversation handler for /define
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("define", define_start)],
+            states={
+                DEFINE_WAITING: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, get_definition)
+                ],
+            },
+            fallbacks=[CommandHandler("cancel", define_cancel)],
+        )
+    )
 
-    # Main Utility button callback (placeholder)
-    application.add_handler(CallbackQueryHandler(start.main_utility_callback, pattern="^main_utility$"))
+    # Callback query handlers
+    application.add_handler(CallbackQueryHandler(quiz_callback, pattern="^quiz_"))
+    application.add_handler(CallbackQueryHandler(grammar_callback, pattern="^grammar_"))
+    application.add_handler(CallbackQueryHandler(main_utility_callback, pattern="^main_utility$"))
 
-    # Run the bot
     logger.info("Bot started, polling...")
     application.run_polling()
 
