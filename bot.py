@@ -21,7 +21,15 @@ from handlers import (
     grammar,
     quiz_callback,
     grammar_callback,
+    # Main Utility dashboard imports
     main_utility_callback,
+    main_daily_callback,
+    main_quiz_callback,
+    main_quiz_answer_callback,
+    main_grammar_callback,
+    main_grammar_answer_callback,
+    main_help_callback,
+    # Example & Define
     example_start,
     get_example,
     example_cancel,
@@ -41,7 +49,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # Command handlers
+    # ---- Command handlers ----
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("about", about))
@@ -51,7 +59,7 @@ def main() -> None:
     application.add_handler(CommandHandler("quiz", quiz))
     application.add_handler(CommandHandler("grammar", grammar))
 
-    # Conversation handler for /example
+    # ---- Conversation handlers ----
     application.add_handler(
         ConversationHandler(
             entry_points=[CommandHandler("example", example_start)],
@@ -63,8 +71,6 @@ def main() -> None:
             fallbacks=[CommandHandler("cancel", example_cancel)],
         )
     )
-
-    # Conversation handler for /define
     application.add_handler(
         ConversationHandler(
             entry_points=[CommandHandler("define", define_start)],
@@ -77,12 +83,21 @@ def main() -> None:
         )
     )
 
-    # Callback query handlers
+    # ---- Callback query handlers ----
+    # Existing quiz/grammar from /quiz and /grammar commands
     application.add_handler(CallbackQueryHandler(quiz_callback, pattern="^quiz_"))
     application.add_handler(CallbackQueryHandler(grammar_callback, pattern="^grammar_"))
-    application.add_handler(CallbackQueryHandler(main_utility_callback, pattern="^main_utility$"))
 
-    # 🛡️ Force a new event loop if none exists (Python 3.14 fix)
+    # Main Utility dashboard
+    application.add_handler(CallbackQueryHandler(main_utility_callback, pattern="^main_utility$"))
+    application.add_handler(CallbackQueryHandler(main_daily_callback, pattern="^main_daily$"))
+    application.add_handler(CallbackQueryHandler(main_quiz_callback, pattern="^main_quiz$"))
+    application.add_handler(CallbackQueryHandler(main_quiz_answer_callback, pattern="^main_quiz_ans_"))
+    application.add_handler(CallbackQueryHandler(main_grammar_callback, pattern="^main_grammar$"))
+    application.add_handler(CallbackQueryHandler(main_grammar_answer_callback, pattern="^main_grammar_ans_"))
+    application.add_handler(CallbackQueryHandler(main_help_callback, pattern="^main_help$"))
+
+    # ---- Event-loop fix for Python 3.14 (safe to keep) ----
     try:
         asyncio.get_running_loop()
     except RuntimeError:
