@@ -1,6 +1,14 @@
 import asyncio
 import logging
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ConversationHandler
+from telegram import Update
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 from config import BOT_TOKEN
 from handlers import (
     start, help_command, about, privacy, function_placeholder,
@@ -30,20 +38,28 @@ def main() -> None:
     application.add_handler(CommandHandler("grammar", grammar))
 
     # Conversation handlers for example and define
-    application.add_handler(ConversationHandler(
-        entry_points=[CommandHandler("example", example.start)],
-        states={
-            example.WAITING_FOR_WORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, example.get_example)],
-        },
-        fallbacks=[CommandHandler("cancel", example.cancel)]
-    ))
-    application.add_handler(ConversationHandler(
-        entry_points=[CommandHandler("define", define.start)],
-        states={
-            define.WAITING_FOR_WORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, define.get_definition)],
-        },
-        fallbacks=[CommandHandler("cancel", define.cancel)]
-    ))
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("example", example.start)],
+            states={
+                example.WAITING_FOR_WORD: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, example.get_example)
+                ],
+            },
+            fallbacks=[CommandHandler("cancel", example.cancel)]
+        )
+    )
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("define", define.start)],
+            states={
+                define.WAITING_FOR_WORD: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, define.get_definition)
+                ],
+            },
+            fallbacks=[CommandHandler("cancel", define.cancel)]
+        )
+    )
 
     # Callback query handler for quiz and grammar buttons
     application.add_handler(CallbackQueryHandler(quiz.handle_callback, pattern="^quiz_"))
