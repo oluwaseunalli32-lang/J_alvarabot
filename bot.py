@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -80,6 +81,12 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(quiz_callback, pattern="^quiz_"))
     application.add_handler(CallbackQueryHandler(grammar_callback, pattern="^grammar_"))
     application.add_handler(CallbackQueryHandler(main_utility_callback, pattern="^main_utility$"))
+
+    # 🛡️ Force a new event loop if none exists (Python 3.14 fix)
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
     logger.info("Bot started, polling...")
     application.run_polling()
